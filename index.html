@@ -1,0 +1,882 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>X PANEL UI</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      background: #121216;
+      color: #ffffff;
+      overflow: hidden;
+    }
+
+    /* Tela de proteção (Login) */
+    #login-screen {
+      position: fixed;
+      inset: 0;
+      background: #09090c;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      z-index: 10000;
+    }
+
+    .login-box {
+      width: 100%;
+      max-width: 340px;
+      background: #0b0b0e;
+      border: 2px solid #6d28d9;
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.85);
+    }
+
+    .login-header {
+      background: #6d28d9;
+      height: 34px;
+      display: flex;
+      align-items: center;
+      padding: 0 10px;
+      font-size: 13px;
+      font-weight: bold;
+      letter-spacing: 0.5px;
+    }
+
+    .login-body {
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .login-field {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      font-size: 12px;
+      color: #e4e4e7;
+    }
+
+    .login-input {
+      height: 36px;
+      background: #18181b;
+      border: 1px solid #3f3f46;
+      color: #ffffff;
+      padding: 0 10px;
+      font-size: 13px;
+      outline: none;
+      user-select: text;
+    }
+
+    .login-input:focus {
+      border-color: #a855f7;
+    }
+
+    .login-btn {
+      height: 38px;
+      background: #6d28d9;
+      border: none;
+      color: #ffffff;
+      font-size: 13px;
+      font-weight: bold;
+      cursor: pointer;
+      margin-top: 4px;
+    }
+
+    .login-error {
+      min-height: 16px;
+      font-size: 12px;
+      color: #f87171;
+      text-align: center;
+    }
+
+    /* Aplicativo principal (oculto até autenticar) */
+    #app-wrapper {
+      display: none;
+      width: 100%;
+      height: 100%;
+    }
+
+    /* Botão flutuante X */
+    #btn-x {
+      position: fixed;
+      top: 24px;
+      left: 24px;
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: #0d0d10;
+      border: 2px solid #7e22ce;
+      color: #ffffff;
+      font-size: 20px;
+      font-weight: bold;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      box-shadow: 0 0 12px rgba(126, 34, 206, 0.7);
+      touch-action: none;
+    }
+
+    /* Janela do painel */
+    #panel {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 92vw;
+      max-width: 430px;
+      background: #0b0b0e;
+      border: 2px solid #6b21a8;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.85);
+      z-index: 1000;
+    }
+
+    /* Modo janelinha flutuante compacta */
+    #panel.mini-window {
+      width: 240px;
+      max-width: 240px;
+    }
+
+    #panel.mini-window .panel-body {
+      min-height: 170px;
+    }
+
+    #panel.mini-window .sidebar {
+      width: 44px;
+      padding: 6px;
+      gap: 6px;
+    }
+
+    #panel.mini-window .tab-btn {
+      width: 32px;
+      height: 32px;
+      font-size: 13px;
+    }
+
+    #panel.mini-window .content {
+      padding: 8px;
+      gap: 6px;
+    }
+
+    #panel.mini-window .grid-2 {
+      grid-template-columns: 1fr;
+      gap: 6px;
+    }
+
+    #panel.mini-window .check-item,
+    #panel.mini-window .radio-group-title,
+    #panel.mini-window .radio-row,
+    #panel.mini-window .side-label,
+    #panel.mini-window .slider-value,
+    #panel.mini-window .custom-select {
+      font-size: 11px;
+    }
+
+    /* Barra superior roxa */
+    .panel-header {
+      background: #6d28d9;
+      height: 34px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 8px;
+      font-size: 13px;
+      font-weight: bold;
+      letter-spacing: 0.5px;
+      touch-action: none;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .header-controls {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .win-btn {
+      background: transparent;
+      border: none;
+      color: #ffffff;
+      font-size: 14px;
+      font-weight: bold;
+      cursor: pointer;
+      padding: 2px 6px;
+    }
+
+    /* Corpo com abas laterais roxas e área principal preta */
+    .panel-body {
+      display: flex;
+      min-height: 250px;
+    }
+
+    .sidebar {
+      width: 58px;
+      background: #09090c;
+      padding: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      border-right: 1px solid #27272a;
+    }
+
+    .tab-btn {
+      width: 42px;
+      height: 42px;
+      border-radius: 6px;
+      border: none;
+      background: #6d28d9;
+      color: #ffffff;
+      font-size: 16px;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      opacity: 0.75;
+    }
+
+    .tab-btn.active {
+      opacity: 1;
+      background: #7c3aed;
+      outline: 2px solid #c084fc;
+    }
+
+    .content {
+      flex: 1;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .tab-page {
+      display: none;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .tab-page.active {
+      display: flex;
+    }
+
+    /* Grade de checkboxes */
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px 12px;
+    }
+
+    .check-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      cursor: pointer;
+    }
+
+    .check-item input[type="checkbox"] {
+      appearance: none;
+      -webkit-appearance: none;
+      width: 24px;
+      height: 24px;
+      background: #18181b;
+      border: 1px solid #3f3f46;
+      border-radius: 2px;
+      position: relative;
+      flex-shrink: 0;
+    }
+
+    .check-item input[type="checkbox"]:checked {
+      background: #6d28d9;
+      border-color: #a855f7;
+    }
+
+    .check-item input[type="checkbox"]:checked::after {
+      content: "✓";
+      position: absolute;
+      color: #ffffff;
+      font-size: 15px;
+      font-weight: bold;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+
+    /* Barra de slider */
+    .slider-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 4px;
+    }
+
+    .slider-box {
+      flex: 1;
+      height: 28px;
+      background: #18181b;
+      border: 1px solid #3f3f46;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    .slider-fill {
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      background: #6d28d9;
+      width: 65%;
+      pointer-events: none;
+    }
+
+    .slider-value {
+      position: relative;
+      z-index: 2;
+      font-size: 13px;
+      font-weight: bold;
+      color: #ffffff;
+    }
+
+    .slider-range {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0;
+      z-index: 3;
+      cursor: pointer;
+    }
+
+    .side-label {
+      font-size: 12px;
+      color: #e4e4e7;
+      min-width: 76px;
+    }
+
+    /* Seletor dropdown e rádio */
+    .select-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .custom-select {
+      flex: 1;
+      height: 28px;
+      background: #18181b;
+      color: #ffffff;
+      border: 1px solid #3f3f46;
+      padding: 0 8px;
+      font-size: 13px;
+    }
+
+    .radio-group-title {
+      font-size: 13px;
+      margin-top: 2px;
+    }
+
+    .radio-row {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      font-size: 13px;
+    }
+
+    .radio-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+    }
+
+    .radio-dot {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: #18181b;
+      border: 2px solid #52525b;
+      display: inline-block;
+    }
+
+    .radio-item input {
+      display: none;
+    }
+
+    .radio-item input:checked + .radio-dot {
+      background: #6d28d9;
+      border-color: #a855f7;
+      box-shadow: inset 0 0 0 4px #18181b;
+    }
+
+    .action-btn {
+      background: #6d28d9;
+      color: #ffffff;
+      border: none;
+      padding: 8px 12px;
+      font-size: 12px;
+      font-weight: bold;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .status-note {
+      font-size: 11px;
+      color: #a1a1aa;
+      margin-top: auto;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- TELA DE LOGIN -->
+  <div id="login-screen">
+    <form class="login-box" id="login-form">
+      <div class="login-header">▾ X PANEL • ACESSO</div>
+      <div class="login-body">
+        <div class="login-field">
+          <label for="login-user">Usuário</label>
+          <input type="text" id="login-user" class="login-input" autocomplete="username" required />
+        </div>
+        <div class="login-field">
+          <label for="login-pass">Senha</label>
+          <input type="password" id="login-pass" class="login-input" autocomplete="current-password" required />
+        </div>
+        <div class="login-error" id="login-error"></div>
+        <button type="submit" class="login-btn">ENTRAR</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- PAINEL -->
+  <div id="app-wrapper">
+    <button id="btn-x" title="Abrir X PANEL">X</button>
+
+    <div id="panel">
+      <div class="panel-header" id="panel-drag">
+        <div class="header-left">
+          <span>▾</span>
+          <span>X PANEL UI v2.0</span>
+        </div>
+        <div class="header-controls">
+          <button class="win-btn" id="btn-float-win" title="Janelinha Flutuante">⧉</button>
+          <button class="win-btn" id="btn-min" title="Minimizar">—</button>
+          <button class="win-btn" id="btn-close" title="Esconder">✕</button>
+        </div>
+      </div>
+
+      <div class="panel-body">
+        <div class="sidebar">
+          <button class="tab-btn active" data-tab="tab-aim" title="Controles">⌖</button>
+          <button class="tab-btn" data-tab="tab-visual" title="Visual">◉</button>
+          <button class="tab-btn" data-tab="tab-config" title="Ajustes">⚙</button>
+          <button class="tab-btn" data-tab="tab-info" title="Perfil">🪪</button>
+        </div>
+
+        <div class="content">
+          <!-- ABA 1: CONTROLES SIMULADOS DE INTERFACE -->
+          <div class="tab-page active" id="tab-aim">
+            <div class="grid-2">
+              <label class="check-item">
+                <input type="checkbox" class="ui-state" data-key="opt1" />
+                <span>Mira Overlay</span>
+              </label>
+              <label class="check-item">
+                <input type="checkbox" class="ui-state" data-key="opt2" />
+                <span>Modo Rápido</span>
+              </label>
+              <label class="check-item">
+                <input type="checkbox" class="ui-state" data-key="opt3" />
+                <span>Precisão UI</span>
+              </label>
+              <label class="check-item">
+                <input type="checkbox" class="ui-state" data-key="opt4" />
+                <span>Filtro Alvo</span>
+              </label>
+            </div>
+
+            <label class="check-item">
+              <input type="checkbox" class="ui-state" data-key="showFov" />
+              <span>Mostrar FOV</span>
+            </label>
+
+            <div class="slider-row">
+              <div class="slider-box">
+                <div class="slider-fill" id="fov-fill"></div>
+                <span class="slider-value" id="fov-val">980.0</span>
+                <input type="range" class="slider-range" id="fov-range" min="100" max="1500" step="10" value="980" />
+              </div>
+              <span class="side-label">Regular FOV</span>
+            </div>
+
+            <div class="select-row">
+              <select class="custom-select ui-state" data-key="targetZone">
+                <option value="Topo">Topo</option>
+                <option value="Centro">Centro</option>
+                <option value="Base">Base</option>
+              </select>
+              <span class="side-label">Alvo UI</span>
+            </div>
+
+            <div class="radio-group-title">Modo de Gatilho:</div>
+            <div class="radio-row">
+              <label class="radio-item">
+                <input type="radio" name="triggerMode" value="Ao Tocar" checked />
+                <span class="radio-dot"></span>
+                <span>Ao Tocar</span>
+              </label>
+              <label class="radio-item">
+                <input type="radio" name="triggerMode" value="Ao Mirar" />
+                <span class="radio-dot"></span>
+                <span>Ao Mirar</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- ABA 2: VISUAL -->
+          <div class="tab-page" id="tab-visual">
+            <div class="select-row">
+              <select class="custom-select" id="accent-select">
+                <option value="#6d28d9">Roxo Neon</option>
+                <option value="#9333ea">Violeta</option>
+                <option value="#c026d3">Magenta</option>
+                <option value="#2563eb">Azul</option>
+              </select>
+              <span class="side-label">Cor do Painel</span>
+            </div>
+
+            <div class="slider-row">
+              <div class="slider-box">
+                <div class="slider-fill" id="scale-fill" style="width: 100%;"></div>
+                <span class="slider-value" id="scale-val">100%</span>
+                <input type="range" class="slider-range" id="scale-range" min="75" max="110" step="5" value="100" />
+              </div>
+              <span class="side-label">Escala UI</span>
+            </div>
+
+            <div class="status-note">Ajustes visuais locais do painel.</div>
+          </div>
+
+          <!-- ABA 3: AJUSTES -->
+          <div class="tab-page" id="tab-config">
+            <button class="action-btn" id="btn-overlay-toggle">Ativar Janelinha Flutuante</button>
+            <button class="action-btn" id="btn-reset">Restaurar Padrões</button>
+            <button class="action-btn" id="btn-lock">Bloquear / Sair</button>
+            <div class="status-note" id="overlay-status">Modo janelinha: desativado</div>
+          </div>
+
+          <!-- ABA 4: INFO -->
+          <div class="tab-page" id="tab-info">
+            <div style="font-size: 13px;">X PANEL INTERFACE DEMO</div>
+            <div class="status-note">Interface standalone em HTML/CSS/JS pronta para WebView ou navegador.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const AUTH_USER = 'Adrian.2026';
+    const AUTH_PASS = '13022026';
+    const AUTH_SESSION_KEY = 'x_panel_auth_ok';
+
+    const loginScreen = document.getElementById('login-screen');
+    const loginForm = document.getElementById('login-form');
+    const loginUser = document.getElementById('login-user');
+    const loginPass = document.getElementById('login-pass');
+    const loginError = document.getElementById('login-error');
+    const appWrapper = document.getElementById('app-wrapper');
+    const btnLock = document.getElementById('btn-lock');
+
+    function unlockApp() {
+      sessionStorage.setItem(AUTH_SESSION_KEY, '1');
+      loginScreen.style.display = 'none';
+      appWrapper.style.display = 'block';
+      loginError.textContent = '';
+    }
+
+    function lockApp() {
+      sessionStorage.removeItem(AUTH_SESSION_KEY);
+      appWrapper.style.display = 'none';
+      loginScreen.style.display = 'flex';
+      loginPass.value = '';
+      loginError.textContent = '';
+    }
+
+    loginForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      if (loginUser.value.trim() === AUTH_USER && loginPass.value === AUTH_PASS) {
+        unlockApp();
+      } else {
+        loginError.textContent = 'Usuário ou senha inválidos.';
+      }
+    });
+
+    btnLock.addEventListener('click', lockApp);
+
+    if (sessionStorage.getItem(AUTH_SESSION_KEY) === '1') {
+      unlockApp();
+    }
+
+    const panel = document.getElementById('panel');
+    const btnX = document.getElementById('btn-x');
+    const btnMin = document.getElementById('btn-min');
+    const btnClose = document.getElementById('btn-close');
+    const btnFloatWin = document.getElementById('btn-float-win');
+    const btnOverlayToggle = document.getElementById('btn-overlay-toggle');
+    const overlayStatus = document.getElementById('overlay-status');
+    const dragHandle = document.getElementById('panel-drag');
+
+    let miniWindowActive = false;
+
+    function triggerNativeOverlay(enabled) {
+      const payload = JSON.stringify({ action: 'toggle_floating_window', enabled });
+      if (window.XPanelBridge && typeof window.XPanelBridge.toggleFloatingWindow === 'function') {
+        window.XPanelBridge.toggleFloatingWindow(enabled);
+      } else if (window.Android && typeof window.Android.toggleFloatingWindow === 'function') {
+        window.Android.toggleFloatingWindow(enabled);
+      } else if (window.ReactNativeWebView && typeof window.ReactNativeWebView.postMessage === 'function') {
+        window.ReactNativeWebView.postMessage(payload);
+      }
+    }
+
+    function setMiniWindowMode(active) {
+      miniWindowActive = active;
+      panel.classList.toggle('mini-window', active);
+      btnOverlayToggle.textContent = active ? 'Desativar Janelinha Flutuante' : 'Ativar Janelinha Flutuante';
+      overlayStatus.textContent = active
+        ? 'Modo janelinha: ativo (permissão de sobreposição necessária no Android)'
+        : 'Modo janelinha: desativado';
+      triggerNativeOverlay(active);
+      saveState();
+    }
+
+    btnFloatWin.addEventListener('click', () => {
+      setMiniWindowMode(!miniWindowActive);
+    });
+
+    btnOverlayToggle.addEventListener('click', () => {
+      setMiniWindowMode(!miniWindowActive);
+    });
+
+    // Troca de abas
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.tab-page').forEach(p => p.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById(btn.dataset.tab).classList.add('active');
+      });
+    });
+
+    // Minimizar para botão X
+    btnMin.addEventListener('click', () => {
+      panel.style.display = 'none';
+      btnX.style.display = 'flex';
+    });
+
+    btnClose.addEventListener('click', () => {
+      panel.style.display = 'none';
+      btnX.style.display = 'flex';
+    });
+
+    // Arrastar botão X e abrir ao tocar sem arrastar
+    let xDragging = false;
+    let xMoved = false;
+    let offsetX = 0, offsetY = 0;
+
+    btnX.addEventListener('pointerdown', (e) => {
+      xDragging = true;
+      xMoved = false;
+      const rect = btnX.getBoundingClientRect();
+      offsetX = e.clientX - rect.left;
+      offsetY = e.clientY - rect.top;
+      btnX.setPointerCapture(e.pointerId);
+    });
+
+    btnX.addEventListener('pointermove', (e) => {
+      if (!xDragging) return;
+      xMoved = true;
+      const maxX = window.innerWidth - btnX.offsetWidth;
+      const maxY = window.innerHeight - btnX.offsetHeight;
+      const left = Math.max(0, Math.min(maxX, e.clientX - offsetX));
+      const top = Math.max(0, Math.min(maxY, e.clientY - offsetY));
+      btnX.style.left = left + 'px';
+      btnX.style.top = top + 'px';
+    });
+
+    btnX.addEventListener('pointerup', () => {
+      xDragging = false;
+      if (!xMoved) {
+        btnX.style.display = 'none';
+        panel.style.display = 'block';
+      }
+    });
+
+    // Arrastar painel pela barra roxa
+    let pDragging = false;
+    let pOffsetX = 0, pOffsetY = 0;
+
+    dragHandle.addEventListener('pointerdown', (e) => {
+      if (e.target.closest('button')) return;
+      pDragging = true;
+      const rect = panel.getBoundingClientRect();
+      panel.style.transform = 'none';
+      panel.style.left = rect.left + 'px';
+      panel.style.top = rect.top + 'px';
+      pOffsetX = e.clientX - rect.left;
+      pOffsetY = e.clientY - rect.top;
+      dragHandle.setPointerCapture(e.pointerId);
+    });
+
+    dragHandle.addEventListener('pointermove', (e) => {
+      if (!pDragging) return;
+      const maxX = window.innerWidth - panel.offsetWidth;
+      const maxY = window.innerHeight - panel.offsetHeight;
+      panel.style.left = Math.max(0, Math.min(maxX, e.clientX - pOffsetX)) + 'px';
+      panel.style.top = Math.max(0, Math.min(maxY, e.clientY - pOffsetY)) + 'px';
+    });
+
+    dragHandle.addEventListener('pointerup', () => {
+      pDragging = false;
+    });
+
+    // Slider FOV
+    const fovRange = document.getElementById('fov-range');
+    const fovVal = document.getElementById('fov-val');
+    const fovFill = document.getElementById('fov-fill');
+
+    function updateFov() {
+      const val = Number(fovRange.value);
+      fovVal.textContent = val.toFixed(1);
+      const pct = ((val - Number(fovRange.min)) / (Number(fovRange.max) - Number(fovRange.min))) * 100;
+      fovFill.style.width = pct + '%';
+      saveState();
+    }
+    fovRange.addEventListener('input', updateFov);
+
+    // Slider Escala
+    const scaleRange = document.getElementById('scale-range');
+    const scaleVal = document.getElementById('scale-val');
+    const scaleFill = document.getElementById('scale-fill');
+
+    function updateScale() {
+      const val = Number(scaleRange.value);
+      scaleVal.textContent = val + '%';
+      const pct = ((val - Number(scaleRange.min)) / (Number(scaleRange.max) - Number(scaleRange.min))) * 100;
+      scaleFill.style.width = pct + '%';
+      panel.style.zoom = val / 100;
+      saveState();
+    }
+    scaleRange.addEventListener('input', updateScale);
+
+    // Cor do painel
+    const accentSelect = document.getElementById('accent-select');
+    function applyAccent() {
+      const color = accentSelect.value;
+      document.querySelector('.panel-header').style.background = color;
+      document.querySelectorAll('.tab-btn').forEach(b => b.style.background = color);
+      document.querySelectorAll('.action-btn').forEach(b => b.style.background = color);
+      fovFill.style.background = color;
+      scaleFill.style.background = color;
+      panel.style.borderColor = color;
+      btnX.style.borderColor = color;
+      document.querySelectorAll('.check-item input:checked').forEach(c => c.style.background = color);
+      saveState();
+    }
+    accentSelect.addEventListener('change', applyAccent);
+
+    // Persistência local
+    function saveState() {
+      const checks = {};
+      document.querySelectorAll('.ui-state[type="checkbox"]').forEach(cb => {
+        checks[cb.dataset.key] = cb.checked;
+      });
+      const selects = {};
+      document.querySelectorAll('select.ui-state').forEach(sel => {
+        selects[sel.dataset.key] = sel.value;
+      });
+      const radio = document.querySelector('input[name="triggerMode"]:checked')?.value || 'Ao Tocar';
+
+      localStorage.setItem('x_panel_demo_state', JSON.stringify({
+        checks,
+        selects,
+        radio,
+        fov: fovRange.value,
+        scale: scaleRange.value,
+        accent: accentSelect.value,
+        miniWindow: miniWindowActive
+      }));
+    }
+
+    function loadState() {
+      const raw = localStorage.getItem('x_panel_demo_state');
+      if (!raw) {
+        updateFov();
+        return;
+      }
+      try {
+        const data = JSON.parse(raw);
+        if (data.checks) {
+          document.querySelectorAll('.ui-state[type="checkbox"]').forEach(cb => {
+            cb.checked = Boolean(data.checks[cb.dataset.key]);
+          });
+        }
+        if (data.selects) {
+          document.querySelectorAll('select.ui-state').forEach(sel => {
+            if (data.selects[sel.dataset.key]) sel.value = data.selects[sel.dataset.key];
+          });
+        }
+        if (data.radio) {
+          const r = document.querySelector(`input[name="triggerMode"][value="${data.radio}"]`);
+          if (r) r.checked = true;
+        }
+        if (data.fov) fovRange.value = data.fov;
+        if (data.scale) scaleRange.value = data.scale;
+        if (data.accent) accentSelect.value = data.accent;
+        if (typeof data.miniWindow === 'boolean') {
+          miniWindowActive = data.miniWindow;
+          panel.classList.toggle('mini-window', miniWindowActive);
+          btnOverlayToggle.textContent = miniWindowActive ? 'Desativar Janelinha Flutuante' : 'Ativar Janelinha Flutuante';
+          overlayStatus.textContent = miniWindowActive
+            ? 'Modo janelinha: ativo (permissão de sobreposição necessária no Android)'
+            : 'Modo janelinha: desativado';
+        }
+      } catch (_) {}
+      updateFov();
+      updateScale();
+      applyAccent();
+    }
+
+    document.querySelectorAll('input, select').forEach(el => {
+      el.addEventListener('change', saveState);
+    });
+
+    document.getElementById('btn-reset').addEventListener('click', () => {
+      localStorage.removeItem('x_panel_demo_state');
+      location.reload();
+    });
+
+    loadState();
+  </script>
+</body>
+</html>
